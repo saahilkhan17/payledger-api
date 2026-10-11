@@ -4,7 +4,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-payledger}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-payledger}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB:-payledger}
     ports:
       - "5432:5432"
@@ -23,7 +23,7 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-payledger}:${POSTGRES_PASSWORD:-payledger}@postgres:5432/${POSTGRES_DB:-payledger}
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-payledger}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-payledger}
       SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
       ENABLE_SCHEDULER: "true"
     ports:
