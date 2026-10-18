@@ -24,13 +24,27 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-payledger}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-payledger}
-      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
-      ENABLE_SCHEDULER: "true"
+      SECRET_KEY: ${SECRET_KEY:-payledger-super-secure-secret-key-change-in-production-2026}
+      ENABLE_SCHEDULER: "false"
     ports:
       - "8000:8000"
     command: >
       sh -c "alembic upgrade head &&
              uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+  worker:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-payledger}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-payledger}
+      SECRET_KEY: ${SECRET_KEY:-payledger-super-secure-secret-key-change-in-production-2026}
+      ENABLE_SCHEDULER: "true"
+      RECONCILIATION_INTERVAL_SECONDS: ${RECONCILIATION_INTERVAL_SECONDS:-60}
+    command: >
+      python -c "import time, signal, sys; from app.worker import start_scheduler, stop_scheduler; signal.signal(signal.SIGTERM, lambda s, f: (stop_scheduler(), sys.exit(0))); signal.signal(signal.SIGINT, lambda s, f: (stop_scheduler(), sys.exit(0))); start_scheduler(); signal.pause() if hasattr(signal, 'pause') else [time.sleep(1) for _ in iter(int, 1)]"
 
 volumes:
   pgdata:
